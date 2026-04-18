@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../app_state.dart';
+import '../auth_service.dart';
 import '../main.dart';
 import '../ui_kit.dart';
+import 'auth/auth_gate.dart';
 import 'premium.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -40,6 +42,8 @@ class ProfileScreen extends StatelessWidget {
                   _buildMilestones(context, appState),
                   const SizedBox(height: 26),
                   _buildPremiumCard(context),
+                  const SizedBox(height: 26),
+                  _buildAccountCard(context),
                 ],
               ),
             ),
@@ -80,6 +84,13 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildIdentityCard(BuildContext context, AppState state) {
+    final user = AuthService.currentUser;
+    final name = user?.displayName?.trim().isNotEmpty == true
+        ? user!.displayName!.trim()
+        : user?.email ?? 'Guest mode';
+    final subtitle =
+        user?.email == null ? 'Local strategist' : 'Firebase synced strategist';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(22),
@@ -147,7 +158,7 @@ class ProfileScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Danial Talgatov',
+                  name,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontSize: 25,
                         letterSpacing: -0.3,
@@ -155,7 +166,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 7),
                 Text(
-                  'Level ${state.level} strategist',
+                  '$subtitle · Level ${state.level}',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Colors.white.withOpacity(0.72),
                       ),
@@ -947,6 +958,101 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAccountCard(BuildContext context) {
+    final user = AuthService.currentUser;
+    return AppPanel(
+      padding: const EdgeInsets.all(20),
+      radius: 30,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const AppSectionLabel('Account'),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryOrange.withOpacity(0.14),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  user == null
+                      ? Icons.person_outline_rounded
+                      : Icons.cloud_done_rounded,
+                  color: AppColors.primaryOrange,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user?.email ?? 'Guest session',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textWhite,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      AuthService.isReady
+                          ? 'Firebase Authentication is connected.'
+                          : 'Add Firebase config to enable cloud auth.',
+                      style: const TextStyle(
+                        color: AppColors.labelGray,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          InkWell(
+            onTap: () => _signOut(context),
+            borderRadius: BorderRadius.circular(22),
+            child: Ink(
+              height: 54,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.065),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: Colors.white.withOpacity(0.06)),
+              ),
+              child: const Center(
+                child: Text(
+                  'Sign out',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _signOut(BuildContext context) async {
+    await AuthService.signOut();
+    if (!context.mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const AuthGate()),
+      (_) => false,
     );
   }
 }

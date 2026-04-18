@@ -173,24 +173,53 @@ class _GoalsScreenState extends State<GoalsScreen>
   Widget _buildInput() {
     final existing = Provider.of<AppState>(context, listen: false);
 
-    return Column(
+    return Stack(
       key: const ValueKey('input'),
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
-        const Padding(
-          padding: EdgeInsets.fromLTRB(28, 40, 28, 0),
+        SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(24, 22, 24, 148),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildInputHeader(),
+              const SizedBox(height: 24),
+              _buildDirectiveCard(),
+              const SizedBox(height: 18),
+              _buildEnergyPlanner(),
+              if (existing.primaryDirective.isNotEmpty &&
+                  existing.primaryDirective != 'NONE') ...[
+                const SizedBox(height: 18),
+                _buildActiveDirective(existing.primaryDirective),
+              ],
+            ],
+          ),
+        ),
+        Positioned(
+          left: 24,
+          right: 24,
+          bottom: 28,
+          child: _buildCTA('Generate Plan', _generate),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInputHeader() {
+    return Row(
+      children: [
+        const Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Goals',
                   style: TextStyle(
                       color: AppColors.textWhite,
-                      fontSize: 36,
-                      letterSpacing: -0.5,
+                      fontSize: 38,
+                      letterSpacing: -0.6,
                       fontWeight: FontWeight.w800)),
-              SizedBox(height: 10),
-              Text('What do you need\nto accomplish today?',
+              SizedBox(height: 8),
+              Text('Design a realistic day around your energy.',
                   style: TextStyle(
                       color: AppColors.labelGray,
                       fontSize: 17,
@@ -199,183 +228,220 @@ class _GoalsScreenState extends State<GoalsScreen>
             ],
           ),
         ),
-        const SizedBox(height: 32),
-
-        // Input field
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: Stack(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBlack,
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: Colors.white.withOpacity(0.05)),
-                  ),
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                  child: TextField(
-                    controller: _controller,
-                    focusNode: _focus,
-                    autofocus: true,
-                    maxLines: null,
-                    keyboardType: TextInputType.multiline,
-                    textInputAction: TextInputAction.newline,
-                    style: const TextStyle(
-                      color: AppColors.textWhite,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w400,
-                      height: 1.55,
-                    ),
-                    cursorColor: AppColors.primaryOrange,
-                    cursorWidth: 2,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText:
-                          'e.g.: Prepare 3 investor pitch slides and review Q1 financial model...',
-                      hintStyle: TextStyle(
-                        color: Colors.white.withOpacity(0.22),
-                        fontSize: 17,
-                        fontWeight: FontWeight.w400,
-                        height: 1.5,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        Container(
+          width: 46,
+          height: 46,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.elevatedBlack,
+            border: Border.all(color: Colors.white.withOpacity(0.07)),
+          ),
+          child: const Icon(
+            Icons.flag_rounded,
+            color: AppColors.primaryOrange,
           ),
         ),
-
-        _buildEnergyPlanner(),
-        const SizedBox(height: 18),
-
-        // Existing directive reminder
-        if (existing.primaryDirective.isNotEmpty &&
-            existing.primaryDirective != 'NONE')
-          Padding(
-            padding: const EdgeInsets.fromLTRB(28, 0, 28, 16),
-            child: Row(
-              children: [
-                Container(
-                  width: 4,
-                  height: 4,
-                  color: AppColors.primaryOrange.withOpacity(0.5),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'ACTIVE: ${existing.primaryDirective}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        color: AppColors.labelGray, fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-        // CTA button
-        _buildCTA('Generate Plan', _generate),
       ],
     );
   }
 
+  Widget _buildDirectiveCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardBlack,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.white.withOpacity(0.055)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.28),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryOrange.withOpacity(0.14),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.edit_note_rounded,
+                  color: AppColors.primaryOrange,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Primary Goal',
+                style: TextStyle(
+                  color: AppColors.textWhite,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _controller,
+            focusNode: _focus,
+            autofocus: true,
+            minLines: 4,
+            maxLines: 7,
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.newline,
+            style: const TextStyle(
+              color: AppColors.textWhite,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+              height: 1.45,
+            ),
+            cursorColor: AppColors.primaryOrange,
+            cursorWidth: 2,
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              hintText: 'What should be true by the end of today?',
+              hintStyle: TextStyle(
+                color: Colors.white.withOpacity(0.25),
+                fontSize: 19,
+                fontWeight: FontWeight.w500,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActiveDirective(String directive) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.elevatedBlack,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.bolt_rounded,
+              color: AppColors.primaryOrange, size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              directive,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.labelGray,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEnergyPlanner() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 28),
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: AppColors.cardBlack,
-          borderRadius: BorderRadius.circular(26),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Planning Context',
-              style: TextStyle(
-                color: AppColors.textWhite,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardBlack,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.white.withOpacity(0.055)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Planning Context',
+            style: TextStyle(
+              color: AppColors.textWhite,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
             ),
-            const SizedBox(height: 14),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _planningTypes.map((type) {
-                  final selected = type == _planningType;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(type),
-                      selected: selected,
-                      onSelected: (_) => setState(() => _planningType = type),
-                      selectedColor: AppColors.primaryOrange,
-                      backgroundColor: AppColors.elevatedBlack,
-                      labelStyle: TextStyle(
-                        color: selected
-                            ? AppColors.backgroundBlack
-                            : AppColors.textWhite,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      side: BorderSide(color: Colors.white.withOpacity(0.06)),
+          ),
+          const SizedBox(height: 14),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _planningTypes.map((type) {
+                final selected = type == _planningType;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(type),
+                    selected: selected,
+                    onSelected: (_) => setState(() => _planningType = type),
+                    selectedColor: AppColors.primaryOrange,
+                    backgroundColor: AppColors.elevatedBlack,
+                    labelStyle: TextStyle(
+                      color: selected
+                          ? AppColors.backgroundBlack
+                          : AppColors.textWhite,
+                      fontWeight: FontWeight.w700,
                     ),
-                  );
-                }).toList(),
+                    side: BorderSide(color: Colors.white.withOpacity(0.06)),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildSliderRow(
+            label: 'Energy',
+            valueLabel: '$_energyLevel/5',
+            value: _energyLevel.toDouble(),
+            min: 1,
+            max: 5,
+            divisions: 4,
+            onChanged: (value) => setState(() => _energyLevel = value.round()),
+          ),
+          _buildSliderRow(
+            label: 'Available time',
+            valueLabel: '${_availableHours.toStringAsFixed(1)}h',
+            value: _availableHours,
+            min: 1,
+            max: 8,
+            divisions: 14,
+            onChanged: (value) => setState(() => _availableHours = value),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _commitmentsController,
+            maxLines: 2,
+            style: const TextStyle(color: AppColors.textWhite),
+            cursorColor: AppColors.primaryOrange,
+            decoration: InputDecoration(
+              hintText: 'Hard commitments, meetings, blocked hours...',
+              hintStyle: TextStyle(color: Colors.white.withOpacity(0.28)),
+              filled: true,
+              fillColor: AppColors.elevatedBlack,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(18),
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.06)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(18),
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.06)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(18),
+                borderSide: const BorderSide(color: AppColors.primaryOrange),
               ),
             ),
-            const SizedBox(height: 16),
-            _buildSliderRow(
-              label: 'Energy',
-              valueLabel: '$_energyLevel/5',
-              value: _energyLevel.toDouble(),
-              min: 1,
-              max: 5,
-              divisions: 4,
-              onChanged: (value) =>
-                  setState(() => _energyLevel = value.round()),
-            ),
-            _buildSliderRow(
-              label: 'Available time',
-              valueLabel: '${_availableHours.toStringAsFixed(1)}h',
-              value: _availableHours,
-              min: 1,
-              max: 8,
-              divisions: 14,
-              onChanged: (value) => setState(() => _availableHours = value),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _commitmentsController,
-              maxLines: 2,
-              style: const TextStyle(color: AppColors.textWhite),
-              cursorColor: AppColors.primaryOrange,
-              decoration: InputDecoration(
-                hintText: 'Hard commitments, meetings, blocked hours...',
-                hintStyle: TextStyle(color: Colors.white.withOpacity(0.28)),
-                filled: true,
-                fillColor: AppColors.elevatedBlack,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(18),
-                  borderSide: BorderSide(color: Colors.white.withOpacity(0.06)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(18),
-                  borderSide: BorderSide(color: Colors.white.withOpacity(0.06)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(18),
-                  borderSide: const BorderSide(color: AppColors.primaryOrange),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -533,87 +599,166 @@ class _GoalsScreenState extends State<GoalsScreen>
   // ─── RESULT ───────────────────────────────────────────────────────────────
 
   Widget _buildResult() {
-    return Column(
+    return Stack(
       key: const ValueKey('result'),
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 32, 12, 0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Preview',
-                        style: TextStyle(
-                            color: AppColors.textWhite,
-                            fontSize: 34,
-                            letterSpacing: -0.4,
-                            fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 8),
-                    Text(
-                      _controller.text.length > 60
-                          ? '${_controller.text.substring(0, 60)}...'
-                          : _controller.text,
-                      style: const TextStyle(
-                          color: AppColors.textWhite,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          height: 1.35),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 28, 18, 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Preview',
+                            style: TextStyle(
+                                color: AppColors.textWhite,
+                                fontSize: 38,
+                                letterSpacing: -0.6,
+                                fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 8),
+                        Text(
+                          _controller.text.length > 74
+                              ? '${_controller.text.substring(0, 74)}...'
+                              : _controller.text,
+                          style: const TextStyle(
+                              color: AppColors.labelGray,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              height: 1.35),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.refresh_rounded,
+                        color: Colors.white.withOpacity(0.44), size: 22),
+                    onPressed: _generate,
+                    tooltip: 'Regenerate',
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close_rounded,
+                        color: Colors.white.withOpacity(0.44), size: 22),
+                    onPressed: () => setState(() {
+                      _phase = 'input';
+                      _rich = [];
+                    }),
+                  ),
+                ],
               ),
-              IconButton(
-                icon: Icon(Icons.refresh_rounded,
-                    color: Colors.white.withOpacity(0.3), size: 20),
-                onPressed: _generate,
-                tooltip: 'Regenerate',
+            ),
+            const SizedBox(height: 18),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: _buildPlanSummary(),
+            ),
+            _buildContractPreview(),
+            const SizedBox(height: 14),
+            Expanded(
+              child: ListView.builder(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 150),
+                itemCount: _rich.length,
+                itemBuilder: (ctx, i) => _buildTaskCard(_rich[i], i),
               ),
-              IconButton(
-                icon: Icon(Icons.close_rounded,
-                    color: Colors.white.withOpacity(0.3), size: 20),
-                onPressed: () => setState(() {
-                  _phase = 'input';
-                  _rich = [];
-                }),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-
-        // Divider
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
-          child: Row(children: [
-            Text('${_rich.length} blocks scheduled',
-                style: const TextStyle(
-                    color: AppColors.labelGray,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600)),
-            const SizedBox(width: 8),
-            Expanded(child: Container(height: 1, color: Colors.transparent)),
-          ]),
+        Positioned(
+          left: 24,
+          right: 24,
+          bottom: 28,
+          child: _buildCTA('Accept Plan', _enforce),
         ),
-
-        _buildContractPreview(),
-
-        // Task list
-        Expanded(
-          child: ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
-            itemCount: _rich.length,
-            itemBuilder: (ctx, i) => _buildTaskCard(_rich[i], i),
-          ),
-        ),
-
-        // Accept button
-        _buildCTA('Accept Plan', _enforce),
       ],
+    );
+  }
+
+  Widget _buildPlanSummary() {
+    final totalMinutes = _rich.fold<int>(
+      0,
+      (sum, r) => sum + _durationMinutes(r.block.startTime, r.block.endTime),
+    );
+    final hours = totalMinutes ~/ 60;
+    final minutes = totalMinutes % 60;
+    final duration = hours == 0
+        ? '${minutes}m'
+        : minutes == 0
+            ? '${hours}h'
+            : '${hours}h ${minutes}m';
+
+    return Row(
+      children: [
+        Expanded(
+          child: _buildPlanStat(
+            Icons.view_timeline_rounded,
+            '${_rich.length}',
+            'blocks',
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _buildPlanStat(
+            Icons.hourglass_bottom_rounded,
+            duration,
+            'planned',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPlanStat(IconData icon, String value, String label) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBlack,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.055)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: AppColors.primaryOrange.withOpacity(0.14),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: AppColors.primaryOrange, size: 19),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textWhite,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.labelGray,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -728,10 +873,7 @@ class _GoalsScreenState extends State<GoalsScreen>
 
   String _durationLabel(String start, String end) {
     try {
-      final s = start.split(':');
-      final e = end.split(':');
-      final mins = (int.parse(e[0]) * 60 + int.parse(e[1])) -
-          (int.parse(s[0]) * 60 + int.parse(s[1]));
+      final mins = _durationMinutes(start, end);
       if (mins < 60) return '${mins}m';
       final h = mins ~/ 60;
       final m = mins % 60;
@@ -739,6 +881,13 @@ class _GoalsScreenState extends State<GoalsScreen>
     } catch (_) {
       return '';
     }
+  }
+
+  int _durationMinutes(String start, String end) {
+    final s = start.split(':');
+    final e = end.split(':');
+    return (int.parse(e[0]) * 60 + int.parse(e[1])) -
+        (int.parse(s[0]) * 60 + int.parse(s[1]));
   }
 
   // ─── ERROR ────────────────────────────────────────────────────────────────
@@ -804,37 +953,34 @@ class _GoalsScreenState extends State<GoalsScreen>
   // ─── SHARED CTA BUTTON ────────────────────────────────────────────────────
 
   Widget _buildCTA(String label, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 120),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 26),
-          decoration: BoxDecoration(
-            color: AppColors.primaryOrange,
-            borderRadius: BorderRadius.circular(26),
-            boxShadow: [
-              BoxShadow(
-                  color: AppColors.primaryOrange.withOpacity(0.18),
-                  blurRadius: 32,
-                  offset: const Offset(0, -8)),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.bolt_rounded,
-                  color: AppColors.backgroundBlack, size: 16),
-              const SizedBox(width: 10),
-              Text(label,
-                  style: const TextStyle(
-                      color: AppColors.backgroundBlack,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700)),
-            ],
-          ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 26),
+        decoration: BoxDecoration(
+          color: AppColors.primaryOrange,
+          borderRadius: BorderRadius.circular(26),
+          boxShadow: [
+            BoxShadow(
+                color: AppColors.primaryOrange.withOpacity(0.18),
+                blurRadius: 32,
+                offset: const Offset(0, -8)),
+          ],
+        ),
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.bolt_rounded,
+                color: AppColors.backgroundBlack, size: 16),
+            const SizedBox(width: 10),
+            Text(label,
+                style: const TextStyle(
+                    color: AppColors.backgroundBlack,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700)),
+          ],
         ),
       ),
     );

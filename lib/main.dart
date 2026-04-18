@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'auth_service.dart';
 import 'app_state.dart';
 import 'screens/dashboard.dart';
 import 'screens/goals.dart';
@@ -8,8 +9,9 @@ import 'screens/execution.dart';
 import 'screens/profile.dart';
 import 'screens/splash.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AuthService.initialize();
   runApp(
     ChangeNotifierProvider(
       create: (context) => AppState(),
