@@ -1,0 +1,52 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build Flutter app and upload to TestFlight"
+  lane :beta do
+    # Flutter dependencies (no clean — avoids invalidating Pods/Manifest.lock)
+    sh "cd .. && flutter pub get"
+
+    # Auto-increment build number
+    increment_build_number(
+      xcodeproj: "ios/Runner.xcodeproj"
+    )
+
+    # Build .ipa for App Store
+    build_app(
+      workspace:        "ios/Runner.xcworkspace",
+      scheme:           "Runner",
+      configuration:    "Release",
+      export_method:    "app-store",
+      export_options: {
+        teamID:                 "PN3N2NQBHC",
+        signingStyle:           "manual",
+        provisioningProfiles:   {
+          "com.erten.app" => "ERTEN AppStore Distribution"
+        },
+        signingCertificate:     "Apple Distribution",
+        uploadSymbols:          true,
+        compileBitcode:         false
+      },
+      output_directory: "build/ipa",
+      output_name:      "Erten.ipa",
+      clean:            true
+    )
+
+    upload_ipa_to_testflight
+  end
+
+  desc "Upload already-built IPA to TestFlight (uses FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD)"
+  lane :upload_only do
+    upload_ipa_to_testflight
+  end
+
+  private_lane :upload_ipa_to_testflight do
+    upload_to_testflight(
+      ipa:                               "build/ipa/Erten.ipa",
+      username:                          "berlikozhanova81@icloud.com",
+      team_id:                           "PN3N2NQBHC",
+      skip_waiting_for_build_processing: true
+    )
+    UI.success "✅ Загрузка в TestFlight завершена! Проверьте App Store Connect через 5–30 минут."
+  end
+end
